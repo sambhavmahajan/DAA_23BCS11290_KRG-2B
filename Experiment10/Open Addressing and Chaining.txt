@@ -1,0 +1,88 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct ChainingHash {
+    int size;
+    vector<vector<int>> table;
+    int collisions = 0;
+
+    ChainingHash(int s) : size(s), table(s) {}
+
+    int hashFunc(int key) { return key % size; }
+
+    void insert(int key) {
+        int idx = hashFunc(key);
+        if (!table[idx].empty()) collisions++;
+        table[idx].push_back(key);
+    }
+
+    bool search(int key) {
+        int idx = hashFunc(key);
+        for (int val : table[idx]) if (val == key) return true;
+        return false;
+    }
+};
+
+struct LinearProbingHash {
+    int size;
+    vector<int> table;
+    int collisions = 0;
+    const int EMPTY = INT_MIN;
+
+    LinearProbingHash(int s) : size(s), table(s, EMPTY) {}
+
+    int hashFunc(int key) { return key % size; }
+
+    void insert(int key) {
+        int idx = hashFunc(key);
+        int start = idx;
+        while (table[idx] != EMPTY) {
+            collisions++;
+            idx = (idx + 1) % size;
+            if (idx == start) return;
+        }
+        table[idx] = key;
+    }
+
+    bool search(int key) {
+        int idx = hashFunc(key);
+        int start = idx;
+        while (table[idx] != EMPTY) {
+            if (table[idx] == key) return true;
+            idx = (idx + 1) % size;
+            if (idx == start) break;
+        }
+        return false;
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n, m;
+    cin >> n >> m;
+    vector<int> keys(n);
+    for (int i = 0; i < n; ++i) cin >> keys[i];
+
+    ChainingHash chain(m);
+    LinearProbingHash linear(m);
+
+    for (int k : keys) {
+        chain.insert(k);
+        linear.insert(k);
+    }
+
+    cout << "Hash Table Size: " << m << "\n";
+    cout << "Keys Inserted: " << n << "\n";
+    cout << "Chaining Collisions: " << chain.collisions << "\n";
+    cout << "Linear Probing Collisions: " << linear.collisions << "\n";
+
+    cout << "\nSearch Test:\n";
+    int q; cin >> q;
+    while (q--) {
+        int x; cin >> x;
+        cout << x << " -> Chain:" << (chain.search(x) ? "Found" : "NotFound")
+             << ", Linear:" << (linear.search(x) ? "Found" : "NotFound") << "\n";
+    }
+}
